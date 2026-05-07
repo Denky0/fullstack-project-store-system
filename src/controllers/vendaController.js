@@ -1,35 +1,35 @@
 const db = require('../config/db');
 
-// Listar todas as vendas
-const listarVendas = (req, res) => {
-  const sql = `
-    SELECT venda.id, produto.nome AS produto, venda.data, venda.operacao, venda.quantidade
-    FROM venda
-    JOIN produto ON venda.produto = produto.id
-    ORDER BY venda.data DESC
-  `;
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao buscar vendas' });
-    res.json(results);
-  });
+const listarVendas = async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT venda.id, produto.nome AS produto, venda.data, venda.operacao, venda.quantidade
+      FROM venda
+      JOIN produto ON venda.produto = produto.id
+      ORDER BY venda.data DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar vendas' });
+  }
 };
 
-// Criar venda
-const criarVenda = (req, res) => {
+const criarVenda = async (req, res) => {
   const { produto, data, operacao, quantidade } = req.body;
 
   if (!quantidade || quantidade <= 0) {
     return res.status(400).json({ erro: 'Quantidade inválida' });
   }
 
-  // Busca a quantidade atual do produto
-  db.query('SELECT quantidade FROM produto WHERE id = ?', [produto], (err, results) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao buscar produto' });
-    if (results.length === 0) return res.status(404).json({ erro: 'Produto não encontrado' });
+  try {
+    const produtoResult = await db.query('SELECT quantidade FROM produto WHERE id = $1', [produto]);
 
-    const quantidadeAtual = results[0].quantidade;
+    if (produtoResult.rows.length === 0) {
+      return res.status(404).json({ erro: 'Produto não encontrado' });
+    }
 
-    // Se for saída verifica se tem estoque suficiente
+    const quantidadeAtual = produtoResult.rows[0].quantidade;
+
     if (operacao === 'saida' && quantidadeAtual < quantidade) {
       return res.status(400).json({ erro: `Estoque insuficiente! Quantidade disponível: ${quantidadeAtual}` });
     }
@@ -38,27 +38,28 @@ const criarVenda = (req, res) => {
       ? quantidadeAtual + parseInt(quantidade)
       : quantidadeAtual - parseInt(quantidade);
 
-    // Registra a movimentação
-    db.query('INSERT INTO venda (produto, data, operacao, quantidade) VALUES (?, ?, ?, ?)',
-      [produto, data, operacao, quantidade], (err, results) => {
-        if (err) return res.status(500).json({ erro: 'Erro ao registrar movimentação' });
+    await db.query(
+      'INSERT INTO venda (produto, data, operacao, quantidade) VALUES ($1, $2, $3, $4)',
+      [produto, data, operacao, quantidade]
+    );
 
-        // Atualiza a quantidade do produto
-        db.query('UPDATE produto SET quantidade = ? WHERE id = ?', [novaQuantidade, produto], (err) => {
-          if (err) return res.status(500).json({ erro: 'Erro ao atualizar estoque' });
-          res.status(201).json({ mensagem: 'Movimentação registrada com sucesso!', id: results.insertId });
-        });
-      });
-  });
+    await db.query('UPDATE produto SET quantidade = $1 WHERE id = $2', [novaQuantidade, produto]);
+
+    res.status(201).json({ mensagem: 'Movimentação registrada com sucesso!' });
+
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao registrar movimentação' });
+  }
 };
 
-// Deletar venda
-const deletarVenda = (req, res) => {
+const deletarVenda = async (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM venda WHERE id = ?', [id], (err) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao deletar venda' });
+  try {
+    await db.query('DELETE FROM venda WHERE id = $1', [id]);
     res.json({ mensagem: 'Venda deletada com sucesso!' });
-  });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao deletar venda' });
+  }
 };
 
 module.exports = { listarVendas, criarVenda, deletarVenda };

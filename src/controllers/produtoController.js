@@ -1,58 +1,64 @@
 const db = require('../config/db');
 
-// Listar todos os produtos
-const listarProdutos = (req, res) => {
-  db.query('SELECT * FROM produto', (err, results) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao buscar produtos' });
-    res.json(results);
-  });
+const listarProdutos = async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM produto');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar produtos' });
+  }
 };
 
-// Buscar os produtos pelo id
-const buscarProduto = (req, res) => {
+const buscarProduto = async (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM produto WHERE id = ?', [id], (err, results) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao buscar produto' });
-    if (results.length === 0) return res.status(404).json({ erro: 'Produto não encontrado' });
-    res.json(results[0]);
-  });
+  try {
+    const result = await db.query('SELECT * FROM produto WHERE id = $1', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ erro: 'Produto não encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar produto' });
+  }
 };
 
-// Cria os produtos
-const criarProduto = (req, res) => {
+const criarProduto = async (req, res) => {
   const { nome, quantidade, valor } = req.body;
-  db.query('INSERT INTO produto (nome, quantidade, valor) VALUES (?, ?, ?)', [nome, quantidade, valor], (err, results) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao criar produto' });
-    res.status(201).json({ mensagem: 'Produto criado com sucesso!', id: results.insertId });
-  });
+  try {
+    const result = await db.query(
+      'INSERT INTO produto (nome, quantidade, valor) VALUES ($1, $2, $3) RETURNING id',
+      [nome, quantidade, valor]
+    );
+    res.status(201).json({ mensagem: 'Produto criado com sucesso!', id: result.rows[0].id });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar produto' });
+  }
 };
 
-// Atualiza os produtos
-const atualizarProduto = (req, res) => {
+const atualizarProduto = async (req, res) => {
   const { id } = req.params;
   const { nome, quantidade, valor } = req.body;
-  db.query('UPDATE produto SET nome = ?, quantidade = ?, valor = ? WHERE id = ?', [nome, quantidade, valor, id], (err) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao atualizar produto' });
+  try {
+    await db.query(
+      'UPDATE produto SET nome = $1, quantidade = $2, valor = $3 WHERE id = $4',
+      [nome, quantidade, valor, id]
+    );
     res.json({ mensagem: 'Produto atualizado com sucesso!' });
-  });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao atualizar produto' });
+  }
 };
 
-// Deleta os produtos
-const deletarProduto = (req, res) => {
+const deletarProduto = async (req, res) => {
   const { id } = req.params;
-
-  db.query('SELECT * FROM venda WHERE produto = ?', [id], (err, results) => {
-    if (err) return res.status(500).json({ erro: 'Erro ao verificar movimentações' });
-
-    if (results.length > 0) {
+  try {
+    const vendas = await db.query('SELECT * FROM venda WHERE produto = $1', [id]);
+    if (vendas.rows.length > 0) {
       return res.status(400).json({ erro: 'Este produto possui movimentações registradas e não pode ser excluído!' });
     }
-
-    db.query('DELETE FROM produto WHERE id = ?', [id], (err) => {
-      if (err) return res.status(500).json({ erro: 'Erro ao deletar produto' });
-      res.json({ mensagem: 'Produto deletado com sucesso!' });
-    });
-  });
+    await db.query('DELETE FROM produto WHERE id = $1', [id]);
+    res.json({ mensagem: 'Produto deletado com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao deletar produto' });
+  }
 };
 
 module.exports = { listarProdutos, buscarProduto, criarProduto, atualizarProduto, deletarProduto };
