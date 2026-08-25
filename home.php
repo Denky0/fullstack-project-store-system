@@ -18,7 +18,7 @@
             <label class="form-label">Ferramenta</label>
             <select name="produto" class="form-select">
               <?php
-              include('conexao.php');
+              include_once('conexao.php');
               $select = "SELECT nome FROM produto";
               $result = $conexao->query($select);
               while ($produto = $result->fetch_object()) {
@@ -48,7 +48,7 @@
       </div>
       <div class="card-body p-0">
         <?php
-        include('conexao.php');
+        include_once('conexao.php');
         $select = "SELECT * FROM venda";
         $result = $conexao->query($select);
         ?>
