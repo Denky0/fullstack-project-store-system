@@ -1,4 +1,5 @@
 <?php
+session_start();
 include_once '../conexao.php';
 
 $id = $_GET['id'];
@@ -7,7 +8,9 @@ $check = $conexao->query("SELECT COUNT(*) as total FROM venda WHERE produto = $i
 $row = $check->fetch_object();
 
 if ($row->total > 0) {
-    die("Não é possível apagar este produto: existem vendas registradas para ele.");
+    $_SESSION['erro'] = "Não é possível apagar este produto: existem vendas registradas para ele.";
+    header('location:../index.php?pagina=cadastrar');
+    exit;
 }
 
 $conexao->query("DELETE FROM produto WHERE id = $id");

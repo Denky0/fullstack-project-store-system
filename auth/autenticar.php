@@ -1,5 +1,6 @@
 <?php
-include "../conexao.php";
+session_start();
+include_once "../conexao.php";
 
 $email = $_GET['email'];
 $senha = $_GET['senha'];
@@ -11,15 +12,13 @@ $resposta = $conexao->query($sql);
 if ($resposta->num_rows > 0) {
     $usuario = $resposta->fetch_object();
 
-    session_start();
     $_SESSION['usuario'] = $usuario->nome;
     $_SESSION['email'] = $usuario->email;
 
     header('location: ../index.php');
+    exit;
 } else {
-    echo "Erro ao logar";
+    $_SESSION['erro_login'] = "Email ou senha inválidos.";
+    header('location: login.php');
+    exit;
 }
-
-?>
-
-<a href="login.php">voltar</a>

@@ -1,5 +1,5 @@
 <?php
-include '../conexao.php';
+include_once '../conexao.php';
 
 $nome = $_GET['nome'];
 $quantidade = $_GET['quantidade'];

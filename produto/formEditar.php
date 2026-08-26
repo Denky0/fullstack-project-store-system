@@ -1,6 +1,6 @@
 <?php
 
-include "conexao.php";
+include_once "conexao.php";
 
 if (isset($_GET['id'])) {
 

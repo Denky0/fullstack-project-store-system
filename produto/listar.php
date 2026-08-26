@@ -1,9 +1,27 @@
 <h1 class="mt-4 mb-4 text-center" style="color: cadetblue; font-weight: 600;">Ferramentas Cadastradas</h1>
 
-<?php
-include('conexao.php');
+<div class="card-body">
+    <form method="get" class="input-group">
+        <input type="hidden" name="pagina" value="cadastrar">
+        <button style="background-color: cadetblue; border: none; border-radius: 5px;" class="btn text-white" type="submit">🔎</button>
+        <input name="busca" class="form-control" placeholder="Buscar produto" required>
 
-$select = "SELECT * FROM produto ORDER BY nome ASC";
+        <?php if (isset($_GET['busca'])): ?>
+            <a href="?pagina=cadastrar" class="btn text-white" style="background-color: cadetblue; border: none; border-radius: 5px; text-decoration: none;">❌ Limpar</a>
+        <?php endif; ?>
+    </form>
+</div>
+
+<?php
+include_once('conexao.php');
+
+if (isset($_GET['busca'])) {
+    $busca = $_GET['busca'];
+    $select = "SELECT * FROM produto WHERE nome like '%$busca%'";
+} else {
+    $select = "SELECT * FROM produto ORDER BY nome ASC";
+}
+
 $result = $conexao->query($select);
 ?>
 

@@ -80,6 +80,14 @@ $usuario = $_SESSION['usuario'];
   <div class="container mt-4">
     <div class="container-content">
 
+      <?php if (isset($_SESSION['erro'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <?= $_SESSION['erro'] ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['erro']); ?>
+      <?php endif; ?>
+
       <?php
       switch (@$_REQUEST['pagina']) {
         case 'cadastrar':

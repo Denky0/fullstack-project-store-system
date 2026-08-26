@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -8,6 +9,14 @@
 </head>
 
 <body class="bg-dark d-flex justify-content-center align-items-center" style="height: 100vh;">
+
+    <?php if (isset($_SESSION['erro_login'])): ?>
+        <div class="alert alert-danger text-center mt-3 fw-bold rounded-pill shadow-sm position-absolute top-0 start-50 translate-middle-x" style="margin-top: 20px;">
+            ❌ <?= $_SESSION['erro_login'] ?>
+        </div>
+        <?php unset($_SESSION['erro_login']); ?>
+    <?php endif; ?>
+
     <div class="card p-4 border-0"
         style="width: 380px; background-color: #111; border-radius: 15px; box-shadow:0 12px 30px rgba(0, 0, 0, 0.9), 0 0 18px rgba(95, 158, 160, 0.25); transform: translateY(-6px);">
         <h2 class="text-center mb-4" style="color: cadetblue; font-weight: 600;">Acesso ao Sistema</h2>

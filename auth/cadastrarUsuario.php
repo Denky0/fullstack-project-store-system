@@ -1,6 +1,6 @@
 <?php
-
-include "../conexao.php";
+session_start();
+include_once "../conexao.php";
 
 
 if (isset($_REQUEST['nome'])) {
@@ -12,6 +12,9 @@ if (isset($_REQUEST['nome'])) {
         $result = $conexao->query("INSERT INTO usuario VALUES('','$nome','$email','$senha')");
 
         if ($result) {
+            $_SESSION['usuario'] = $nome;
+            $_SESSION['email'] = $email;
+            echo "<meta http-equiv='refresh' content='1;url=../index.php'>";
             echo "<div class='alert alert-success text-center mt-3 fw-bold rounded-pill shadow-sm'>
                 ✅ Cadastrado com Sucesso!
                 </div>";
@@ -22,7 +25,6 @@ if (isset($_REQUEST['nome'])) {
 }
 
 ?>
-<?php ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
