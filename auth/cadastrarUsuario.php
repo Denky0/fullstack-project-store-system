@@ -8,19 +8,27 @@ if (isset($_REQUEST['nome'])) {
     $email = $_GET['email'];
     $senha = $_GET['senha'];
 
-    try {
-        $result = $conexao->query("INSERT INTO usuario VALUES('','$nome','$email','$senha')");
+    $verifica = $conexao->query("SELECT id FROM usuario WHERE email = '$email'");
 
-        if ($result) {
-            $_SESSION['usuario'] = $nome;
-            $_SESSION['email'] = $email;
-            echo "<meta http-equiv='refresh' content='1;url=../index.php'>";
-            echo "<div class='alert alert-success text-center mt-3 fw-bold rounded-pill shadow-sm'>
-                ✅ Cadastrado com Sucesso!
-                </div>";
+    if ($verifica->num_rows > 0) {
+        echo "<div class='alert alert-danger text-center mt-3 fw-bold rounded-pill shadow-sm'>
+            ❌ Este email já está cadastrado!
+            </div>";
+    } else {
+        try {
+            $result = $conexao->query("INSERT INTO usuario VALUES('','$nome','$email','$senha')");
+
+            if ($result) {
+                $_SESSION['usuario'] = $nome;
+                $_SESSION['email'] = $email;
+                echo "<meta http-equiv='refresh' content='1;url=../index.php'>";
+                echo "<div class='alert alert-success text-center mt-3 fw-bold rounded-pill shadow-sm'>
+                    ✅ Cadastrado com Sucesso!
+                    </div>";
+            }
+        } catch (Exception $e) {
+            echo "<p class='text-danger ms-5'>Erro ao cadastrar</p>" . $e->getMessage();
         }
-    } catch (Exception $e) {
-        echo "<p class='text-danger ms-5'>Erro ao cadastrar</p>" . $e->getMessage();
     }
 }
 
