@@ -91,6 +91,7 @@ $usuario = $_SESSION['usuario'];
       <?php
       switch (@$_REQUEST['pagina']) {
         case 'cadastrar':
+          include('produto/listar.php');
           include('produto/formCadastrar.php');
           break;
         case 'editar':
